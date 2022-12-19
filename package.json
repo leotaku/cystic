@@ -1,0 +1,27 @@
+{
+  "name": "cystic",
+  "version": "0.1.0",
+  "description": "My custom keyboard",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/leotaku/cystic.git"
+  },
+  "keywords": [
+    "keyboard",
+    "ergogen",
+    "pcb",
+    "hardware"
+  ],
+  "author": "Leo Gaskin <leo.gaskin@le0.gs>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/leotaku/cystic/issues"
+  },
+  "homepage": "https://github.com/leotaku/cystic#readme",
+  "dependencies": {
+    "ergogen": "github:ergogen/ergogen"
+  }
+}
