@@ -44,10 +44,15 @@ const requestListener = function (req, res) {
         Connection: "keep-alive",
       });
       (async () => {
-        let results = await generateErgogenResults(filename);
-        res.write("data: " + results.demo.svg + "\n\n");
-
         const watcher = fs.watch(filename);
+
+        try {
+          let results = await generateErgogenResults(filename);
+          res.write("data: " + results.demo.svg + "\n\n");
+        } catch (err) {
+          console.log(err);
+        }
+
         for await (const event of watcher) {
           try {
             let results = await generateErgogenResults(filename);
