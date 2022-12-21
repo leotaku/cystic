@@ -118,7 +118,7 @@ const filename = process.argv.slice(2)[0] || "ergogen.yml";
 const footprints = await injectFootprints("footprints");
 console.log("Injected footprints:", footprints.join(", "));
 
-// Prepare initial results
+// Generate initial results
 var initial = undefined;
 try {
   console.log("Handling file:", filename);
@@ -127,7 +127,7 @@ try {
   console.log(err);
 }
 
-// Start server
+// Start preview server
 console.log("Starting server at:", "http://localhost:8080/");
 const server = http.createServer(requestListener(filename, initial));
 server.listen(8080);
