@@ -2,6 +2,7 @@ import ergogen from "ergogen";
 import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
+import yargs from "yargs";
 
 async function generateErgogenResults(filename) {
   const doc = await fs.readFile(filename).then((it) => it.toString());
@@ -9,15 +10,21 @@ async function generateErgogenResults(filename) {
 }
 
 async function injectFootprints(directory) {
-  const results = [];
   for (const filename of await fs.readdir(directory)) {
     const name = path.parse(filename).name;
+    console.log("Inject footprint:", name);
     const data = await import("./" + path.join(directory, filename));
     ergogen.inject("footprint", name, data.default);
-    results.push(name);
   }
+}
 
-  return results;
+async function writeOutputFiles(data, directory) {
+  await fs.mkdir(directory, { recursive: true });
+  for (const [name, content] of new Map(Object.entries(data.pcbs))) {
+    const filename = path.join(directory, name + ".kicad_pcb");
+    console.log("Write file:", filename);
+    await fs.writeFile(filename, content);
+  }
 }
 
 const html = `
@@ -111,23 +118,43 @@ const requestListener = (filename, initial) => (req, res) => {
   }
 };
 
-// Arguments
-const [filename] = process.argv.slice(2, 3);
+yargs()
+  .scriptName("cystic-cli")
+  .usage("$0 <cmd> [args]")
+  .command({
+    command: "build <config>",
+    description: "Build full Ergogen configuration",
+    builder: (yargs) => {
+      yargs.option("output", {
+        description: "Output directory",
+        demandOption: true,
+      });
+    },
+    handler: async (argv) => {
+      await injectFootprints("footprints");
+      console.log("Generate ergogen:", filename);
+      const data = await generateErgogenResults(argv.config);
+      await writeOutputFiles(data, argv.output);
+    },
+  })
+  .command({
+    command: "preview <config>",
+    description: "Run auto-reloading Ergogen preview server",
+    handler: async (argv) => {
+      await injectFootprints("footprints");
 
-// Inject footprints
-const footprints = await injectFootprints("footprints");
-console.log("Injected footprints:", footprints.join(", "));
+      var initial = undefined;
+      try {
+        console.log("Generating ergogen:", argv.config);
+        initial = await generateErgogenResults(argv.config);
+      } catch (err) {
+        console.log(err);
+      }
 
-// Generate initial results
-var initial = undefined;
-try {
-  console.log("Handling file:", filename);
-  initial = await generateErgogenResults(filename);
-} catch (err) {
-  console.log(err);
-}
-
-// Start preview server
-console.log("Starting server at:", "http://localhost:8080/");
-const server = http.createServer(requestListener(filename, initial));
-server.listen(8080);
+      console.log("Starting server at:", "http://localhost:8080/");
+      const server = http.createServer(requestListener(argv.config, initial));
+      server.listen(8080);
+    },
+  })
+  .demandCommand(1)
+  .parse(process.argv.slice(2));

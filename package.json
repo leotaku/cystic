@@ -2,6 +2,7 @@
   "name": "cystic",
   "version": "0.1.0",
   "description": "My custom keyboard",
+  "main": "index.js",
   "type": "module",
   "scripts": {},
   "repository": {
