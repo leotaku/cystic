@@ -92,6 +92,7 @@ const requestListener = function (req, res) {
           try {
             let results = await generateErgogenResults(filename);
             res.write("data: " + JSON.stringify(results) + "\n\n");
+            console.log("Reload...");
           } catch (err) {
             console.log(err);
           }
