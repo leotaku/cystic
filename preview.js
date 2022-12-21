@@ -119,15 +119,15 @@ const footprints = await injectFootprints("footprints");
 console.log("Injected footprints:", footprints.join(", "));
 
 // Prepare initial results
-var initial_results = undefined;
+var initial = undefined;
 try {
   console.log("Handling file:", filename);
-  initial_results = await generateErgogenResults(filename);
+  initial = await generateErgogenResults(filename);
 } catch (err) {
   console.log(err);
 }
 
 // Start server
 console.log("Starting server at:", "http://localhost:8080/");
-const server = http.createServer(requestListener(filename, initial_results));
+const server = http.createServer(requestListener(filename, initial));
 server.listen(8080);
