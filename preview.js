@@ -3,6 +3,23 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 
+async function generateErgogenResults(filename) {
+  const doc = await fs.readFile(filename).then((it) => it.toString());
+  return await ergogen.process(doc, true, () => null);
+}
+
+async function injectFootprints(directory) {
+  const results = [];
+  for (const filename of await fs.readdir(directory)) {
+    const name = path.parse(filename).name;
+    const data = await import("./" + path.join(directory, filename));
+    ergogen.inject("footprint", name, data.default);
+    results.push(name);
+  }
+
+  return results;
+}
+
 const html = `
 <!DOCTYPE html>
 <html>
@@ -63,11 +80,6 @@ const html = `
 </html>
 `;
 
-async function generateErgogenResults(filename) {
-  const doc = await fs.readFile(filename).then((it) => it.toString());
-  return await ergogen.process(doc, true, () => null);
-}
-
 const requestListener = (filename, initial) => (req, res) => {
   switch (req.url) {
     case "/reload":
@@ -103,12 +115,8 @@ const requestListener = (filename, initial) => (req, res) => {
 const filename = process.argv.slice(2)[0] || "ergogen.yml";
 
 // Inject footprints
-for (const filename of await fs.readdir("footprints")) {
-  const name = path.parse(filename).name;
-  const data = await import("./" + path.join("footprints", filename));
-  console.log("Injecting footprint:", name);
-  ergogen.inject("footprint", name, data.default);
-}
+const footprints = await injectFootprints("footprints");
+console.log("Injected footprints:", footprints.join(", "));
 
 // Prepare initial results
 var initial_results = undefined;
