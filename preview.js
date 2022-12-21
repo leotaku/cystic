@@ -112,7 +112,7 @@ const requestListener = (filename, initial) => (req, res) => {
 };
 
 // Arguments
-const filename = process.argv.slice(2)[0] || "ergogen.yml";
+const [filename] = process.argv.slice(2, 3);
 
 // Inject footprints
 const footprints = await injectFootprints("footprints");
