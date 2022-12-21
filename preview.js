@@ -8,15 +8,6 @@ const html = `
 <!DOCTYPE html>
 <html>
   <head>
-    <script>
-      var source = new EventSource('/reload')
-      source.addEventListener('message', (event) => {
-        document.getElementById("target").innerHTML = event.data;
-      }, false)
-      source.addEventListener('error', (event) => {
-        window.location.reload();
-      })
-    </script>
     <style>
     svg {
       max-width: 100%;
@@ -26,6 +17,49 @@ const html = `
   </head>
   <body>
     <div id="target">Edit ergogen.yml to see changes live!</div>
+    <select id="select">
+    </select>
+    <script>
+      function setOptions(select, data) {
+        const mappings = new Map(Object.entries(Object.assign({ demo: data.demo }, data.outlines)));
+        const options = new Map(Array.from(select.childNodes).map((it) => [it.innerText, it]));
+
+        for (const [key, value] of mappings) {
+          if (key.startsWith("_")) {
+            continue;
+          } else if (options.get(key)) {
+            options.get(key).value = value.svg;
+          } else {
+            const option = document.createElement("option");
+            option.innerText = key;
+            option.value = value.svg;
+            select.appendChild(option);
+          }
+        }
+
+        for (const [key, option] of options) {
+          if (!mappings.get(key)) {
+            option.remove();
+          }
+        }
+      }
+
+      const select = document.getElementById("select");
+      const target = document.getElementById("target");
+      select.addEventListener('change', (event) => {
+         target.innerHTML = event.target.value;
+      });
+
+      const source = new EventSource('/reload')
+      source.addEventListener('message', (event) => {
+        const data = JSON.parse(event.data);
+        setOptions(select, data);
+        target.innerHTML = select.value;
+      })
+      source.addEventListener('error', (event) => {
+        window.location.reload();
+      })
+    </script>
   </body>
 </html>
 `;
@@ -48,7 +82,7 @@ const requestListener = function (req, res) {
 
         try {
           let results = await generateErgogenResults(filename);
-          res.write("data: " + results.demo.svg + "\n\n");
+          res.write("data: " + JSON.stringify(results) + "\n\n");
         } catch (err) {
           console.log(err);
         }
@@ -56,7 +90,7 @@ const requestListener = function (req, res) {
         for await (const event of watcher) {
           try {
             let results = await generateErgogenResults(filename);
-            res.write("data: " + results.demo.svg + "\n\n");
+            res.write("data: " + JSON.stringify(results) + "\n\n");
           } catch (err) {
             console.log(err);
           }
