@@ -3,8 +3,6 @@ import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 
-const filename = process.argv.slice(2)[0] || "ergogen.yml";
-
 const html = `
 <!DOCTYPE html>
 <html>
@@ -70,7 +68,7 @@ async function generateErgogenResults(filename) {
   return await ergogen.process(doc, true, () => null);
 }
 
-const requestListener = function (req, res) {
+const requestListener = (filename, initial) => (req, res) => {
   switch (req.url) {
     case "/reload":
       res.writeHead(200, {
@@ -78,16 +76,10 @@ const requestListener = function (req, res) {
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       });
+      res.write("data: " + JSON.stringify(initial) + "\n\n");
+
       (async () => {
         const watcher = fs.watch(filename);
-
-        try {
-          let results = await generateErgogenResults(filename);
-          res.write("data: " + JSON.stringify(results) + "\n\n");
-        } catch (err) {
-          console.log(err);
-        }
-
         for await (const event of watcher) {
           try {
             let results = await generateErgogenResults(filename);
@@ -107,6 +99,10 @@ const requestListener = function (req, res) {
   }
 };
 
+// Arguments
+const filename = process.argv.slice(2)[0] || "ergogen.yml";
+
+// Inject footprints
 for (const filename of await fs.readdir("footprints")) {
   const name = path.parse(filename).name;
   const data = await import("./" + path.join("footprints", filename));
@@ -114,8 +110,16 @@ for (const filename of await fs.readdir("footprints")) {
   ergogen.inject("footprint", name, data.default);
 }
 
-console.log("Handling file:", filename);
-console.log("Starting server at:", "http://localhost:8080/");
+// Prepare initial results
+var initial_results = undefined;
+try {
+  console.log("Handling file:", filename);
+  initial_results = await generateErgogenResults(filename);
+} catch (err) {
+  console.log(err);
+}
 
-const server = http.createServer(requestListener);
+// Start server
+console.log("Starting server at:", "http://localhost:8080/");
+const server = http.createServer(requestListener(filename, initial_results));
 server.listen(8080);
