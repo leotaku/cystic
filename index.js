@@ -12,7 +12,7 @@ async function generateErgogenResults(filename) {
 async function injectFootprints(directory) {
   for (const filename of await fs.readdir(directory)) {
     const name = path.parse(filename).name;
-    console.log("Inject footprint:", name);
+    console.log("Injecting footprint:", name);
     const data = await import("./" + path.join(directory, filename));
     ergogen.inject("footprint", name, data.default);
   }
@@ -22,7 +22,7 @@ async function writeOutputFiles(data, directory) {
   await fs.mkdir(directory, { recursive: true });
   for (const [name, content] of new Map(Object.entries(data.pcbs))) {
     const filename = path.join(directory, name + ".kicad_pcb");
-    console.log("Write file:", filename);
+    console.log("Writing file:", filename);
     await fs.writeFile(filename, content);
   }
 }
@@ -103,7 +103,7 @@ const requestListener = (filename, initial) => (req, res) => {
           try {
             let results = await generateErgogenResults(filename);
             res.write("data: " + JSON.stringify(results) + "\n\n");
-            console.log("Reload...");
+            console.log("Reloading...");
           } catch (err) {
             console.log(err);
           }
@@ -132,7 +132,7 @@ yargs()
     },
     handler: async (argv) => {
       await injectFootprints("footprints");
-      console.log("Generate ergogen:", filename);
+      console.log("Generating ergogen:", filename);
       const data = await generateErgogenResults(argv.config);
       await writeOutputFiles(data, argv.output);
     },
