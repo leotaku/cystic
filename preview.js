@@ -1,6 +1,7 @@
 import ergogen from "ergogen";
 import fs from "node:fs/promises";
 import http from "node:http";
+import path from "node:path";
 
 const filename = process.argv.slice(2)[0] || "ergogen.yml";
 
@@ -104,6 +105,13 @@ const requestListener = function (req, res) {
       res.end(html);
   }
 };
+
+for (const filename of await fs.readdir("footprints")) {
+  const name = path.parse(filename).name;
+  const data = await import("./" + path.join("footprints", filename));
+  console.log("Injecting footprint:", name);
+  ergogen.inject("footprint", name, data.default);
+}
 
 console.log("Handling file:", filename);
 console.log("Starting server at:", "http://localhost:8080/");
