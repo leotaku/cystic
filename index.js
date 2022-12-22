@@ -132,7 +132,7 @@ yargs()
     },
     handler: async (argv) => {
       await injectFootprints("footprints");
-      console.log("Generating ergogen:", filename);
+      console.log("Generating ergogen:", argv.config);
       const data = await generateErgogenResults(argv.config);
       await writeOutputFiles(data, argv.output);
     },
