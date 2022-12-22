@@ -87,7 +87,7 @@ const html = `
 </html>
 `;
 
-const requestListener = (filename, initial) => (req, res) => {
+const requestListener = (filename) => async (req, res) => {
   switch (req.url) {
     case "/reload":
       res.writeHead(200, {
@@ -95,7 +95,13 @@ const requestListener = (filename, initial) => (req, res) => {
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       });
-      res.write("data: " + JSON.stringify(initial) + "\n\n");
+      try {
+        let results = await generateErgogenResults(filename);
+        res.write("data: " + JSON.stringify(results) + "\n\n");
+        console.log("New connection...");
+      } catch (err) {
+        console.log(err);
+      }
 
       (async () => {
         const watcher = fs.watch(filename);
@@ -143,16 +149,17 @@ yargs()
     handler: async (argv) => {
       await injectFootprints("footprints");
 
-      var initial = undefined;
       try {
         console.log("Generating ergogen:", argv.config);
-        initial = await generateErgogenResults(argv.config);
+        // These results are thrown away, the generation is only run
+        // so we can show an error immediately if there are problems.
+        await generateErgogenResults(argv.config);
       } catch (err) {
         console.log(err);
       }
 
       console.log("Starting server at:", "http://localhost:8080/");
-      const server = http.createServer(requestListener(argv.config, initial));
+      const server = http.createServer(requestListener(argv.config));
       server.listen(8080);
     },
   })
