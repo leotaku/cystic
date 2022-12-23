@@ -2,9 +2,10 @@
   "name": "cystic",
   "version": "0.1.0",
   "description": "My custom keyboard",
-  "main": "index.js",
   "type": "module",
-  "scripts": {},
+  "bin": {
+    "cystic-cli": "./index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/leotaku/cystic.git"

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import ergogen from "ergogen";
 import fs from "node:fs/promises";
 import http from "node:http";
