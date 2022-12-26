@@ -1,0 +1,153 @@
+units:
+  promicro_x: 33
+  promicro_y: 18
+
+points:
+  zones:
+    matrix:
+      key:
+        height: cy
+        width: cx
+        padding: cy + 1
+        tags: [key]
+      rows:
+        bottom:
+        home:
+        top:
+      columns:
+        pinky:
+          key:
+          rows:
+            top: $unset
+        ring:
+          key:
+            stagger: cy/2
+        middle:
+          key:
+            splay: -2
+            stagger: cy/2
+        index:
+          key:
+            splay: -2
+            stagger: -cy/2
+        inner:
+          rows:
+            top: $unset
+          key:
+            splay: -2
+            stagger: cy/2
+    thumb:
+      key:
+        tags: [key]
+      anchor:
+        ref: matrix_index_bottom
+        shift: [(cx+2)/2, -(cy+2)*2]
+      rows:
+        default:
+      columns:
+        tuck:
+          key:
+        home:
+          key:
+            stagger: cy/2
+            rotate: 4
+    mcu:
+      anchor:
+        ref: matrix_middle_bottom
+        shift: [0, -30]
+        rotate: 2
+      key:
+        name: mcu
+        width: promicro_x
+        height: promicro_y
+
+outlines:
+  _keys:
+    - what: rectangle
+      where: key
+      size: [cx, cy]
+  _mcu:
+    - what: rectangle
+      where:
+        ref: mcu
+        shift: [0, 0]
+      size: [promicro_x, promicro_y]
+  references:
+    - _keys
+    - _mcu
+  _base:
+    - what: rectangle
+      where: key
+      size: [cx + 4, cy + 4]
+      fillet: 2
+  _glue:
+    - what: circle
+      where:
+        ref: matrix_middle_bottom
+        shift: [-1.5, -10]
+      radius: 45
+    - what: rectangle
+      operation: subtract
+      where:
+        ref: matrix_pinky_home
+        shift: [0, 10]
+      size: 40
+  _cutout:
+    - _base
+    - _glue
+  cutout:
+    - what: outline
+      name: _cutout
+      fillet: 2
+  pretty_demo:
+    - cutout
+    - ^references
+
+pcbs:
+  cystic_lung:
+    outlines:
+      board:
+        outline: cutout
+      keycaps:
+        outline: references
+        layer: Eco1.User
+    footprints:
+      - what: choc
+        where: key
+        params:
+          from: '{{name}}'
+          to: GND
+          keycaps: true
+          reverse: true
+          hotswap: true
+      - what: choc
+        where: key
+        adjust:
+          rotate: 180
+        params:
+          from: GND
+          to: '{{name}}'
+          keycaps: true
+          reverse: true
+          hotswap: false
+      - what: promicro_reversible
+        where:
+          ref: mcu
+          shift: [1.5, 0]
+        params:
+          P16: thumb_home
+          P10: thumb_tuck
+          # Undecided
+          P20: matrix_pinky_home
+          P21: matrix_pinky_bottom
+          P19: matrix_ring_bottom
+          P18: matrix_ring_home
+          P15: matrix_ring_top
+          P2: matrix_middle_top
+          P3: matrix_middle_home
+          P4: matrix_middle_bottom
+          P5: matrix_index_top
+          P6: matrix_index_home
+          P7: matrix_index_bottom
+          P8: matrix_inner_home
+          P9: matrix_inner_bottom
