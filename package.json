@@ -1,7 +1,7 @@
 {
   "name": "cystic",
   "version": "0.1.0",
-  "description": "My custom keyboard",
+  "description": "Ergogen-based keyboard development environment",
   "type": "module",
   "bin": {
     "cystic-cli": "./index.js"
