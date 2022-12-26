@@ -6,6 +6,9 @@
   "bin": {
     "cystic-cli": "./index.js"
   },
+  "files": [
+    "./index.js"
+  ],
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/leotaku/cystic.git"
